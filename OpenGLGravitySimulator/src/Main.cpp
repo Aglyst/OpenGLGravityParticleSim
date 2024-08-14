@@ -5,7 +5,6 @@ namespace fs = std::filesystem;
 #include <chrono>
 using namespace std::chrono;
 
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/random.hpp>
@@ -25,8 +24,6 @@ float oldTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch
 fs::path currentPath = fs::current_path();
 
 std::vector<Particle> particles;
-std::vector<glm::vec2> points;
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
