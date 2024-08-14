@@ -16,6 +16,8 @@ public:
 	void Activate();
 	void Delete();
 
+	void SetFloat(std::string name, float value);
+
 private:
 	std::string Parse(std::string path);
 	void CheckErrors(GLuint shaderID, const char* type);

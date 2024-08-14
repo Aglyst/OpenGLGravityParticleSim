@@ -38,6 +38,11 @@ void Shader::Delete()
 	glDeleteProgram(progID);
 }
 
+void Shader::SetFloat(std::string name, float value) 
+{
+	glUniform1f(glGetUniformLocation(progID, name.c_str()), value);
+}
+
 std::string Shader::Parse(std::string path)
 {
 	std::ifstream in(path, std::ios::binary);
@@ -53,7 +58,6 @@ std::string Shader::Parse(std::string path)
 	}
 	throw(errno);
 }
-
 
 void Shader::CheckErrors(GLuint shaderID, const char* type)
 {

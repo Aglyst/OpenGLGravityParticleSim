@@ -13,6 +13,7 @@ using namespace std::chrono;
 #include "Shader.h"
 #include "Particle.h"
 
+
 static float SCR_WIDTH = 800;
 static float SCR_HEIGHT = 800;
 
@@ -27,16 +28,9 @@ std::vector<Particle> particles;
 std::vector<glm::vec2> points;
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
 
-void processInput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
 
 void CalculateValues() 
 {
@@ -86,10 +80,9 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // glfwSetMouseButtonCallback(window, mouse_b
 
     gladLoadGL();
-
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     #pragma endregion
 
     srand(time(0));
@@ -97,10 +90,10 @@ int main()
     for (int i = 0; i < particleCount-1; i++)
     {
         glm::vec2 pos = glm::linearRand(glm::vec2(-1.0, -1.0), glm::vec2(1.0, 1.0));
-        particles.push_back(Particle(pos, 100000.0f));
+        particles.push_back(Particle(pos, 250000.0f));
     }
 
-    particles.push_back(Particle(glm::vec2(0.0f), 5000000.0f));
+    // particles.push_back(Particle(glm::vec2(0.0f, 0.0f), 25000000.0f));
     #pragma endregion
 
     #pragma region VBO|VAO|Shader Setup
@@ -113,25 +106,14 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * particles.size(), &particles[0], GL_STREAM_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 3 + sizeof(GL_FLOAT), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), 0);
     glEnableVertexAttribArray(0);
 
-    /*
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 4 + sizeof(GL_FLOAT), (void*)offsetof(Particle, vel));
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)offsetof(Particle, mass));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 4 + sizeof(GL_FLOAT), (void*)offsetof(Particle, force));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)offsetof(Particle, vel));
     glEnableVertexAttribArray(2);
-    */
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(glm::vec2) * 4 + sizeof(GL_FLOAT), (void*)offsetof(Particle, mass));
-    glEnableVertexAttribArray(1);
-
-    /*
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * points.size(), &points[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
-    glEnableVertexAttribArray(0);
-    */
 
     glBindVertexArray(0);
 
@@ -139,11 +121,12 @@ int main()
     Shader shader(currentPath.string() + "\\src\\shaders\\vert.glsl", currentPath.string() + "\\src\\shaders\\frag.glsl");
     #pragma endregion
 
-    glPointSize(1.0f);
-    // glDisable(GL_CULL_FACE);
-    // glDisable(GL_DEPTH_TEST);
+    shader.Activate();
+    shader.SetFloat("rangeMin", 100000.0f);
+    shader.SetFloat("rangeMax", 10000000.0f);
 
-
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) 
     {
@@ -151,6 +134,9 @@ int main()
         dt = currentTime-oldTime + 0.1;
         oldTime = currentTime;
         CalculateValues();
+
+        //float a = particles[20].vel.x * particles[20].vel.x + particles[20].vel.y * particles[20].vel.y;
+        //std::cout << a << std::endl;
 
         //for (Particle& p : particles) {
         //    p.pos = glm::linearRand(glm::vec2(-1.0, -1.0), glm::vec2(1.0, 1.0));
@@ -168,7 +154,6 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.Activate();
         glBindVertexArray(VAO);
         glDrawArrays(GL_POINTS, 0, particles.size());
 
@@ -183,4 +168,15 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
 }

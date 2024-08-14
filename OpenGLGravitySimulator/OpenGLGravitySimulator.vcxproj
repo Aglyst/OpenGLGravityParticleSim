@@ -143,7 +143,7 @@
     <ClCompile Include="..\Dependencies\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="..\Dependencies\stb\stb.cpp" />
     <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\OpenGLGravitySimulator.cpp" />
+    <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Shader.h" />
