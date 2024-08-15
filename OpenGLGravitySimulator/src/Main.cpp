@@ -11,6 +11,7 @@ using namespace std::chrono;
 
 #include "Shader.h"
 #include "Particle.h"
+#include "QuadTree.h"
 
 
 static float SCR_WIDTH = 800;
@@ -53,7 +54,7 @@ void CalculateValues()
     }
 }
 
-int main()
+int temp()
 {
     int particleCount;
 
