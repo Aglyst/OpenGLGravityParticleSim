@@ -15,22 +15,32 @@ void QuadTree::Add(Particle& particle)
 	TraverseAdd(*(head), particle, glm::vec2(0, 0), 2.0f);
 }
 
+void QuadTree::GenerateTree(std::vector<Particle> particles)
+{
+	for (Particle& p : particles) {
+		Add(p);
+	}
+}
+
 void QuadTree::Print() 
 {
 	PrintRecurse(head);
 }
 
-void QuadTree::TraverseAdd(QTNode& curr, Particle& particle, glm::vec2 midPoint, float currWidth)
+void QuadTree::TraverseAdd(QTNode& curr, Particle& newParticle, glm::vec2 midPoint, float currWidth)
 {
 	if (curr.particle->mass == -1.0f && curr.tL == nullptr) {	// case: leaf node
-		curr.particle = &particle;
-		curr.COM = particle.pos;
-		curr.mass = particle.mass;
+		curr.particle = &newParticle;
+		curr.COM = newParticle.pos;
+		curr.mass = newParticle.mass;
 		return;
 	}
 	else if (curr.particle->mass != -1.0f && curr.tL == nullptr) {					// case: leaf node needs to be subdivided
-		
-		// ToDo: Implement case where particle at exact positoion already exists
+
+		if (curr.particle->pos.x == newParticle.pos.x && curr.particle->pos.y == newParticle.pos.y) {
+			std::cout << "A" << std::endl;
+			return;
+		}
 		
 		curr.tL = new QTNode();
 		curr.tR = new QTNode();
@@ -40,30 +50,30 @@ void QuadTree::TraverseAdd(QTNode& curr, Particle& particle, glm::vec2 midPoint,
 		glm::vec2 newMidPoint = glm::vec2(0,0);
 
 		// insert new particle
-		int quadToAddTo = QuadrantCheck(particle.pos, midPoint);		// midDist means current node/box
+		int quadToAddTo = QuadrantCheck(newParticle.pos, midPoint);		// midDist means current node/box
 		if (quadToAddTo == 1) {
 			newMidPoint.x = midPoint.x + currWidth / 4;
 			newMidPoint.y = midPoint.y + currWidth / 4;
 
-			TraverseAdd(*(curr.tR), particle, newMidPoint, currWidth /2);
+			TraverseAdd(*(curr.tR), newParticle, newMidPoint, currWidth /2);
 		}
 		else if (quadToAddTo == 2) {
 			newMidPoint.x = midPoint.x - currWidth / 4;
 			newMidPoint.y = midPoint.y + currWidth / 4;
 
-			TraverseAdd(*(curr.tL), particle, newMidPoint, currWidth /2);
+			TraverseAdd(*(curr.tL), newParticle, newMidPoint, currWidth /2);
 		}
 		else if (quadToAddTo == 3) {
 			newMidPoint.x = midPoint.x - currWidth / 4;
 			newMidPoint.y = midPoint.y - currWidth / 4;
 
-			TraverseAdd(*(curr.bL), particle, newMidPoint, currWidth /2);
+			TraverseAdd(*(curr.bL), newParticle, newMidPoint, currWidth /2);
 		}
 		else if (quadToAddTo == 4) {
 			newMidPoint.x = midPoint.x + currWidth / 4;
 			newMidPoint.y = midPoint.y - currWidth / 4;
 
-			TraverseAdd(*(curr.bR), particle, newMidPoint, currWidth /2);
+			TraverseAdd(*(curr.bR), newParticle, newMidPoint, currWidth /2);
 		}
 
 		// insert already existing particle into quadrant
@@ -94,36 +104,36 @@ void QuadTree::TraverseAdd(QTNode& curr, Particle& particle, glm::vec2 midPoint,
 		}
 
 		// curr.particle == nullptr;	// doesn't work for some reason
-		curr.particle->mass = -1.0f;
+		curr.particle = new Particle(glm::vec2(0, 0), -1);
 	}
 	else if (curr.particle->mass == -1.0f && curr.tL != nullptr) {					// case: node has been subdivided
 		glm::vec2 newMidPoint = glm::vec2(0, 0);
 
 		// insert new particle
-		int quadToAddTo = QuadrantCheck(particle.pos, midPoint);		// midDist means current node/box
+		int quadToAddTo = QuadrantCheck(newParticle.pos, midPoint);		// midDist means current node/box
 		if (quadToAddTo == 1) {
 			newMidPoint.x = midPoint.x + currWidth / 4;
 			newMidPoint.y = midPoint.y + currWidth / 4;
 
-			TraverseAdd(*(curr.tR), particle, newMidPoint, currWidth / 2);
+			TraverseAdd(*(curr.tR), newParticle, newMidPoint, currWidth / 2);
 		}
 		else if (quadToAddTo == 2) {
 			newMidPoint.x = midPoint.x - currWidth / 4;
 			newMidPoint.y = midPoint.y + currWidth / 4;
 
-			TraverseAdd(*(curr.tL), particle, newMidPoint, currWidth / 2);
+			TraverseAdd(*(curr.tL), newParticle, newMidPoint, currWidth / 2);
 		}
 		else if (quadToAddTo == 3) {
 			newMidPoint.x = midPoint.x - currWidth / 4;
 			newMidPoint.y = midPoint.y - currWidth / 4;
 
-			TraverseAdd(*(curr.bL), particle, newMidPoint, currWidth / 2);
+			TraverseAdd(*(curr.bL), newParticle, newMidPoint, currWidth / 2);
 		}
 		else if (quadToAddTo == 4) {
 			newMidPoint.x = midPoint.x + currWidth / 4;
 			newMidPoint.y = midPoint.y - currWidth / 4;
 
-			TraverseAdd(*(curr.bR), particle, newMidPoint, currWidth / 2);
+			TraverseAdd(*(curr.bR), newParticle, newMidPoint, currWidth / 2);
 		}
 	}
 

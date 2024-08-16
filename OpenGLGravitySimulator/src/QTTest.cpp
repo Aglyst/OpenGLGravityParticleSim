@@ -2,7 +2,7 @@
 
 #include "QuadTree.h"
 
-int main() 
+int testQT() 
 {
 	QuadTree q;
 	char exit = 'n';

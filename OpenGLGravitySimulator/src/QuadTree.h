@@ -26,6 +26,7 @@ public:
 	~QuadTree();
 
 	void Add(Particle& particle);
+	void GenerateTree(std::vector<Particle> particles);
 	void Print();
 private:
 	void TraverseAdd(QTNode& head, Particle& particle, glm::vec2 midPoint, float currWidth);

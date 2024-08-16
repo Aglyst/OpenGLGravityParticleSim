@@ -54,7 +54,7 @@ void CalculateValues()
     }
 }
 
-int temp()
+int main()
 {
     int particleCount;
 
