@@ -17,20 +17,21 @@ using namespace std::chrono;
 static float SCR_WIDTH = 800;
 static float SCR_HEIGHT = 800;
 
-const float G = 0.000000000066743;
+const float G = 0.000000000066743f;
 
 float dt = 0.0001;
 float oldTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
-fs::path currentPath = fs::current_path();
-
 std::vector<Particle> particles;
+float theta = 0.5;
+QuadTree qt;
 
+fs::path currentPath = fs::current_path();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 
-void CalculateValues() 
+void CalculateNaive() 
 {
     for (Particle& currentP : particles) 
     {
@@ -38,21 +39,61 @@ void CalculateValues()
         {
             if (currentP.pos != p.pos) 
             {
-                float dist = glm::distance(p.pos, currentP.pos);
+                float dist = glm::max(glm::distance(p.pos, currentP.pos), 0.000001f);
 
-                // std::cout << (-G * (currentP.mass * p.mass) / (dist * dist)) << std::endl;
-                currentP.force += (float)(-G * (currentP.mass*p.mass)/(dist * dist)) * (currentP.pos-p.pos);
-            }
-            else 
-            {
-                currentP.force = glm::vec2(0.1f);
+                glm::vec2 dir = glm::normalize(p.pos - currentP.pos);   // p.pos - currentP.pos;
+                currentP.force += (G * (currentP.mass*p.mass)/(dist /* * dist*/)) * dir;
             }
         }
+
         glm::vec2 accel = currentP.force / currentP.mass;
         currentP.vel += accel * dt;
         currentP.pos += (accel / 2.0f * dt * dt) + (currentP.vel * dt);
     }
 }
+
+#pragma region Calculate via Barnes-Hut
+void FindForce(Particle& originalParticle, QTNode* node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (node->particle->mass != -1.0f) {
+        // if node contains a particle
+        float dist = glm::max(glm::distance(node->particle->pos, originalParticle.pos), 0.000001f);
+        glm::vec2 dir = glm::normalize(node->particle->pos - originalParticle.pos);
+
+        originalParticle.force += (G * (originalParticle.mass * node->particle->mass) / (dist)) * dir;
+        return;
+    }
+
+    float quotient = (node->width) / (glm::distance(originalParticle.pos, node->COM));  // s/d
+    if (quotient > theta) {
+        FindForce(originalParticle, node->tL);
+        FindForce(originalParticle, node->tR);
+        FindForce(originalParticle, node->bL);
+        FindForce(originalParticle, node->bR);
+        return;
+    }
+    else {
+        float dist = glm::max(glm::distance(node->COM, originalParticle.pos), 0.000001f);
+        glm::vec2 dir = glm::normalize(node->COM - originalParticle.pos);
+
+        originalParticle.force += (G * (originalParticle.mass * node->mass) / (dist)) * dir;
+        return;
+    }
+}
+
+void CalculateBarnesHut() {
+    qt.GenerateTree(particles);
+
+    for (Particle& p : particles)
+    {
+        FindForce(p, qt.head);
+    }
+
+}
+#pragma endregion
 
 int main()
 {
@@ -87,11 +128,11 @@ int main()
     #pragma region Initialize Particles
     for (int i = 0; i < particleCount-1; i++)
     {
-        glm::vec2 pos = glm::linearRand(glm::vec2(-1.0, -1.0), glm::vec2(1.0, 1.0));
-        particles.push_back(Particle(pos, 250000.0f));
+        glm::vec2 pos = glm::linearRand(glm::vec2(-1.0f, -1.0f), glm::vec2(1.0, 1.0));
+        particles.push_back(Particle(pos, 5.0f));
     }
-
-    // particles.push_back(Particle(glm::vec2(0.0f, 0.0f), 25000000.0f));
+    particles.push_back(Particle(glm::vec2(-0.75f,0), 750.0f));
+    //particles.push_back(Particle(glm::vec2(0.75f, 0), 30.0f));
     #pragma endregion
 
     #pragma region VBO|VAO|Shader Setup
@@ -120,8 +161,8 @@ int main()
     #pragma endregion
 
     shader.Activate();
-    shader.SetFloat("rangeMin", 100000.0f);
-    shader.SetFloat("rangeMax", 10000000.0f);
+    shader.SetFloat("rangeMin", 1.0f);
+    shader.SetFloat("rangeMax", 1000.0f);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -131,19 +172,9 @@ int main()
         float currentTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         dt = currentTime-oldTime + 0.1;
         oldTime = currentTime;
-        CalculateValues();
 
-        //float a = particles[20].vel.x * particles[20].vel.x + particles[20].vel.y * particles[20].vel.y;
-        //std::cout << a << std::endl;
-
-        //for (Particle& p : particles) {
-        //    p.pos = glm::linearRand(glm::vec2(-1.0, -1.0), glm::vec2(1.0, 1.0));
-        //}
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * particles.size(), &particles[0], GL_STREAM_DRAW);
-        //void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        //memcpy(ptr, &particles, sizeof(sizeof(Particle) * particles.size()));
-        //glUnmapBuffer(GL_ARRAY_BUFFER);
-        // glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * particles.size(), NULL, GL_DYNAMIC_DRAW);
+        // CalculateNaive();
+        CalculateBarnesHut();
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Particle) * particles.size(), &particles[0]);
 

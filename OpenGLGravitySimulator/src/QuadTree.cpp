@@ -7,7 +7,7 @@ QuadTree::QuadTree()
 
 QuadTree::~QuadTree()
 {
-	
+	// TODO: Implement destructor as QT lifetime is per frame
 }
 
 void QuadTree::Add(Particle& particle)
@@ -33,12 +33,12 @@ void QuadTree::TraverseAdd(QTNode& curr, Particle& newParticle, glm::vec2 midPoi
 		curr.particle = &newParticle;
 		curr.COM = newParticle.pos;
 		curr.mass = newParticle.mass;
+		curr.width = currWidth;
 		return;
 	}
 	else if (curr.particle->mass != -1.0f && curr.tL == nullptr) {					// case: leaf node needs to be subdivided
 
 		if (curr.particle->pos.x == newParticle.pos.x && curr.particle->pos.y == newParticle.pos.y) {
-			std::cout << "A" << std::endl;
 			return;
 		}
 		
@@ -174,7 +174,7 @@ void QuadTree::PrintRecurse(QTNode* node)
 	}
 
 	if (node->particle->mass != -1.0f) {
-		std::cout << "(" << node->particle->pos.x << ", " << node->particle->pos.y << ")" << std::endl;
+		std::cout << "(" << node->particle->pos.x << ", " << node->particle->pos.y << ")" << " | W:" << node->width << std::endl;
 	}
 	else {
 		PrintRecurse(node->tL);

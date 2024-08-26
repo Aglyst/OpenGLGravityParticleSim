@@ -2,12 +2,10 @@
 
 #include "QuadTree.h"
 
-int testQT() 
+void testQT() 
 {
 	QuadTree q;
 	char exit = 'n';
-
-
 
 	while (exit != 'y') {
 		std::cout << "Enter (x,y): ";
