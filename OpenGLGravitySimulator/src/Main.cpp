@@ -24,7 +24,7 @@ float oldTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch
 
 std::vector<Particle> particles;
 float theta = 0.5;
-QuadTree qt;
+
 
 fs::path currentPath = fs::current_path();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -85,11 +85,16 @@ void FindForce(Particle& originalParticle, QTNode* node) {
 }
 
 void CalculateBarnesHut() {
+    QuadTree qt;
     qt.GenerateTree(particles);
 
     for (Particle& p : particles)
     {
         FindForce(p, qt.head);
+
+        glm::vec2 accel = p.force / p.mass;
+        p.vel += accel * dt;
+        p.pos += (accel / 2.0f * dt * dt) + (p.vel * dt);
     }
 
 }
@@ -173,8 +178,8 @@ int main()
         dt = currentTime-oldTime + 0.1;
         oldTime = currentTime;
 
-        // CalculateNaive();
-        CalculateBarnesHut();
+        CalculateNaive();
+        // CalculateBarnesHut();
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Particle) * particles.size(), &particles[0]);
 

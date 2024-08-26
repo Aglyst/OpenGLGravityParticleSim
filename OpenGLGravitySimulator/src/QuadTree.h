@@ -33,4 +33,5 @@ private:
 	void TraverseAdd(QTNode& head, Particle& particle, glm::vec2 midPoint, float currWidth);
 	int QuadrantCheck(glm::vec2 pos, glm::vec2 midPoint);
 	void PrintRecurse(QTNode* node);
+	void DeleteRecurse(QTNode* node);
 };

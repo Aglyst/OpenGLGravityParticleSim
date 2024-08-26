@@ -8,6 +8,7 @@ QuadTree::QuadTree()
 QuadTree::~QuadTree()
 {
 	// TODO: Implement destructor as QT lifetime is per frame
+	DeleteRecurse(head);
 }
 
 void QuadTree::Add(Particle& particle)
@@ -181,5 +182,22 @@ void QuadTree::PrintRecurse(QTNode* node)
 		PrintRecurse(node->tR);
 		PrintRecurse(node->bL);
 		PrintRecurse(node->bR);
+	}
+}
+
+void QuadTree::DeleteRecurse(QTNode* node) {
+	if (node == nullptr) {
+		return;
+	}
+
+	if (node->particle->mass != -1.0f) {
+		delete node;
+	}
+	else {
+		DeleteRecurse(node->tL);
+		DeleteRecurse(node->tR);
+		DeleteRecurse(node->bL);
+		DeleteRecurse(node->bR);
+		delete node;
 	}
 }
