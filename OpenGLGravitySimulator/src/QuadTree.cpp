@@ -13,14 +13,36 @@ QuadTree::~QuadTree()
 
 void QuadTree::Add(Particle& particle)
 {
-	TraverseAdd(*(head), particle, glm::vec2(0, 0), 2.0f);
+	TraverseAdd(*(head), particle, glm::vec2(0, 0), gridWidth);
 }
 
 void QuadTree::GenerateTree(std::vector<Particle> particles)
 {
+	float minXY = FLT_MAX;
+	float maxXY = -minXY;
+	
 	for (Particle& p : particles) {
+		float currMax, currMin;
+		if (p.pos.x > p.pos.y) {
+			currMax = p.pos.x;
+			currMin = p.pos.y;
+		}
+		else {
+			currMax = p.pos.y;
+			currMin = p.pos.x;
+		}
+
+		if (currMax > maxXY) {
+			maxXY = currMax;
+		}
+
+		if (currMin < minXY) {
+			minXY = currMin;
+		}
+
 		Add(p);
 	}
+	gridWidth = maxXY - minXY;
 }
 
 void QuadTree::Print() 
@@ -31,7 +53,9 @@ void QuadTree::Print()
 void QuadTree::TraverseAdd(QTNode& curr, Particle& newParticle, glm::vec2 midPoint, float currWidth)
 {
 	if (curr.particle->mass == -1.0f && curr.tL == nullptr) {	// case: leaf node
+		delete curr.particle;
 		curr.particle = &newParticle;
+
 		curr.COM = newParticle.pos;
 		curr.mass = newParticle.mass;
 		curr.width = currWidth;
@@ -105,6 +129,7 @@ void QuadTree::TraverseAdd(QTNode& curr, Particle& newParticle, glm::vec2 midPoi
 		}
 
 		// curr.particle == nullptr;	// doesn't work for some reason
+
 		curr.particle = new Particle(glm::vec2(0, 0), -1);
 	}
 	else if (curr.particle->mass == -1.0f && curr.tL != nullptr) {					// case: node has been subdivided
@@ -198,6 +223,7 @@ void QuadTree::DeleteRecurse(QTNode* node) {
 		DeleteRecurse(node->tR);
 		DeleteRecurse(node->bL);
 		DeleteRecurse(node->bR);
+		delete node->particle;
 		delete node;
 	}
 }

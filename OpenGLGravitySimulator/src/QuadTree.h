@@ -9,9 +9,11 @@
 
 struct QTNode {
 	Particle* particle = new Particle(glm::vec2(0,0), -1.0f);
+
 	glm::vec2 COM	= glm::vec2(0,0);		// center of mass of node
 	float mass		= 0;					// total mass
 	float width;							// width of cell(width of head will always be 2)
+
 	QTNode* tL		= nullptr;
 	QTNode* tR		= nullptr;
 	QTNode* bL		= nullptr;
@@ -22,6 +24,7 @@ class QuadTree
 {
 public:
 	QTNode* head;
+	float gridWidth = 2.0f;
 
 	QuadTree();
 	~QuadTree();

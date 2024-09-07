@@ -57,7 +57,7 @@ void FindForce(Particle& originalParticle, QTNode* node) {
     if (node == nullptr) {
         return;
     }
-
+    // TODO: implement pairwise force solving
     if (node->particle->mass != -1.0f) {
         // if node contains a particle
         float dist = glm::max(glm::distance(node->particle->pos, originalParticle.pos), 0.000001f);
@@ -96,7 +96,6 @@ void CalculateBarnesHut() {
         p.vel += accel * dt;
         p.pos += (accel / 2.0f * dt * dt) + (p.vel * dt);
     }
-
 }
 #pragma endregion
 
@@ -135,12 +134,14 @@ int main()
     {
         glm::vec2 pos = glm::linearRand(glm::vec2(-1.0f, -1.0f), glm::vec2(1.0, 1.0));
         particles.push_back(Particle(pos, 5.0f));
+        // std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
     }
-    particles.push_back(Particle(glm::vec2(-0.75f,0), 750.0f));
+    particles.push_back(Particle(glm::vec2(0.75,0.75), 30.0f));
+    particles.push_back(Particle(glm::vec2(0,0), 750.0f));
     //particles.push_back(Particle(glm::vec2(0.75f, 0), 30.0f));
     #pragma endregion
 
-    #pragma region VBO|VAO|Shader Setup
+    #pragma region VBO|VAO Setup
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -160,11 +161,9 @@ int main()
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
-
-
-    Shader shader(currentPath.string() + "\\src\\shaders\\vert.glsl", currentPath.string() + "\\src\\shaders\\frag.glsl");
     #pragma endregion
 
+    Shader shader(currentPath.string() + "\\src\\shaders\\vert.glsl", currentPath.string() + "\\src\\shaders\\frag.glsl");
     shader.Activate();
     shader.SetFloat("rangeMin", 1.0f);
     shader.SetFloat("rangeMax", 1000.0f);
@@ -178,8 +177,8 @@ int main()
         dt = currentTime-oldTime + 0.1;
         oldTime = currentTime;
 
-        CalculateNaive();
-        // CalculateBarnesHut();
+        // CalculateNaive();
+        CalculateBarnesHut();
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Particle) * particles.size(), &particles[0]);
 
