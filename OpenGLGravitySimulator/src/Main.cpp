@@ -14,8 +14,8 @@ using namespace std::chrono;
 #include "QuadTree.h"
 
 
-static float SCR_WIDTH = 800;
-static float SCR_HEIGHT = 800;
+static float scrWidth = 800;
+static float scrHeight = 800;
 
 const float G = 0.000000000066743f;
 
@@ -23,6 +23,7 @@ float dt = 0.0001;
 float oldTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
 std::vector<Particle> particles;
+float defaultMass = 15.0f;
 float theta = 0.5;
 
 
@@ -114,7 +115,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "N-Body Grav Sim", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(scrWidth, scrHeight, "N-Body Grav Sim", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -123,7 +124,6 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetMouseButtonCallback(window, mouse_b
 
     gladLoadGL();
     #pragma endregion
@@ -133,11 +133,11 @@ int main()
     for (int i = 0; i < particleCount-1; i++)
     {
         glm::vec2 pos = glm::linearRand(glm::vec2(-1.0f, -1.0f), glm::vec2(1.0, 1.0));
-        particles.push_back(Particle(pos, 5.0f));
+        particles.push_back(Particle(pos, defaultMass));
         // std::cout << "(" << pos.x << ", " << pos.y << ")" << std::endl;
     }
-    particles.push_back(Particle(glm::vec2(0.75,0.75), 30.0f));
-    particles.push_back(Particle(glm::vec2(0,0), 750.0f));
+    // particles.push_back(Particle(glm::vec2(0.75,0.75), 30.0f));
+    particles.push_back(Particle(glm::vec2(0.1, 0.1), 500.0f));
     //particles.push_back(Particle(glm::vec2(0.75f, 0), 30.0f));
     #pragma endregion
 
@@ -169,7 +169,7 @@ int main()
     shader.SetFloat("rangeMax", 1000.0f);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+    glViewport(0, 0, scrWidth, scrHeight);
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) 
     {
@@ -177,8 +177,8 @@ int main()
         dt = currentTime-oldTime + 0.1;
         oldTime = currentTime;
 
-        // CalculateNaive();
-        CalculateBarnesHut();
+        CalculateNaive();
+        // CalculateBarnesHut();
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Particle) * particles.size(), &particles[0]);
 
@@ -194,7 +194,6 @@ int main()
         glfwPollEvents();
     }
 
-
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(shader.progID);
@@ -205,6 +204,8 @@ int main()
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    scrWidth = width;
+    scrHeight = height;
     glViewport(0, 0, width, height);
 }
 
